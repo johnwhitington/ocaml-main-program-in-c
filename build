@@ -14,7 +14,8 @@ stubs=(camlpdf)
 ranlib=`ocamlc -config 2>/dev/null | grep ranlib | sed 's/ranlib: //'`
 native_c_libraries=`ocamlc -config 2>/dev/null | grep native_c_libraries | sed 's/native_c_libraries: //'`
 libdir=`ocamlc -where`
-if [ "$(expr substr $(uname -s) 1 6)" == "CYGWIN" ];then	
+uname=`uname -s`
+if [ "${uname:0:6}" == "CYGWIN" ];then	
 libdir=`echo $libdir | dos2unix`
 libdir=`cygpath $libdir`
 link="flexlink -chain mingw -exe"
@@ -47,7 +48,7 @@ mkdir -p tmp_asmrun
 asmrun_members=$(ar t ${libdir}/libasmrun.a | grep -v '__.*')
 for stub in $stubs
 do
-if [ "$(expr substr $(uname -s) 1 6)" == "CYGWIN" ];then	
+if [ "${uname:0:6}" == "CYGWIN" ];then	
 thefile=`ocamlfind query ${stub} | dos2unix`
 thefile=`cygpath $thefile`
 else
