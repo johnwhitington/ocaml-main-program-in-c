@@ -10,4 +10,4 @@ ocamlfind=ocamlfind
 ocamlfind_packs=(cpdf)
 stubs=(camlpdf)
 
-source build
+source generic
