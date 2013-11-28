@@ -1,0 +1,6 @@
+#!/bin/bash
+exesuffix=
+libdir=`ocamlc -where`
+link=cc
+source config
+source common

@@ -1,0 +1,45 @@
+#!/bin/bash
+ranlib=`ocamlc -config 2>/dev/null | grep ranlib | sed 's/ranlib: //'`
+native_c_libraries=`ocamlc -config 2>/dev/null | grep native_c_libraries | sed 's/native_c_libraries: //'`
+camllibs=$(printf "%s.cmxa " "${mllibs[@]}")
+camlcmx=$(printf "%s.cmx " "${mlfiles[@]}")
+camllink=$(printf -- "-l%s " "${mllibs[@]}")
+camlpackages=$(printf -- "-package %s " "${ocamlfind_packs[@]}")
+camlpackcmxa=$(printf "%s.cmxa " "${ocamlfind_packs[@]}")
+for x in "${mlifiles[@]}"
+do
+$ocamlfind ocamlc $camlpackages ${x}.mli
+done
+for x in "${mlfiles[@]}"
+do
+$ocamlfind ocamlopt $camlpackages -c ${x}.ml
+done
+$ocamlfind ocamlopt $camlpackages -output-obj -o impl.o $camllibs $camlpackcmxa $camlcmx
+for x in "${cfiles[@]}"
+do
+$ocamlfind ocamlc -c ${x}.c
+done
+rm -rf lib${libname}.a
+ar rc lib${libname}.a impl.o
+mkdir -p tmp_asmrun
+asmrun_members=$(ar t ${libdir}/libasmrun.a | grep -v '__.*')
+for stub in $stubs
+do
+thefile=`ocamlfind query ${stub}`/lib${stub}_stubs.a
+stub_members=$(ar t ${thefile} | grep -v '__.*')
+( cd tmp_asmrun && ar x ${thefile} )
+for mem in $stub_members; do ar rc lib${libname}.a tmp_asmrun/$mem; done
+done
+( cd tmp_asmrun && ar x ${libdir}/libasmrun.a )
+for mem in $asmrun_members; do ar rc lib${libname}.a tmp_asmrun/$mem; done
+for x in "${cfiles[o]}"
+do
+ar rc lib${libname}.a ${x}.o 
+done
+$ranlib lib${libname}.a
+rm -rf tmp_asmrun
+$ocamlfind ocamlc -c ${finalcfile}.c
+linkflags="-L. -l$libname -L$libdir $camllink $native_c_libraries"
+echo "LINKER:"$link
+echo "FLAGS:"$linkflags
+$link -o $finalcfile$exesuffix ${finalcfile}.o $linkflags

@@ -1,0 +1,6 @@
+#!/bin/bash
+exesuffix=.exe
+libdir=/cygdrive/c/ocaml/lib
+link="flexlink -chain mingw -exe" 
+source config
+source common
