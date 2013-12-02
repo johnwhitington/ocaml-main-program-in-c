@@ -1,5 +1,5 @@
 #!/bin/bash
-#Script
+#Extract some information from ocamlc and set up basic parameters
 ranlib=`ocamlc -config 2>/dev/null | grep ranlib | sed 's/ranlib: //'`
 native_c_libraries=`ocamlc -config 2>/dev/null | grep native_c_libraries | sed 's/native_c_libraries: //'`
 libdir=`ocamlc -where`
@@ -21,22 +21,28 @@ camllink=$(printf -- "-l%s " "${mllibs[@]}")
 camlpackages=$(printf -- "-package %s " "${ocamlfind_packs[@]}")
 camlpackcmxa=$(printf "%s.cmxa " "${ocamlfind_packs[@]}")
 wrapperos=$(printf "%s.o" "${cfiles[@]}")
+#Process the .mli files
 for x in "${mlifiles[@]}"
 do
 $ocamlfind ocamlc $camlpackages ${x}.mli
 done
+#Process the .ml files
 for x in "${mlfiles[@]}"
 do
 $ocamlfind ocamlopt $camlpackages -c ${x}.ml
 done
+#Using -output-obj for static library
 $ocamlfind ocamlopt $camlpackages -output-obj -o impl.o $camllibs $camlpackcmxa $camlcmx
+#Compile the .c files
 for x in "${cfiles[@]}"
 do
 $ocamlfind ocamlc -c ${x}.c
 done
+#Using -output-obj for dynamic library, if on Windows
 if [ "${uname:0:6}" == "CYGWIN" ];then
 $ocamlfind ocamlopt $camlpackages -output-obj -o lib${libname}.$dllname $wrapperos $camllibs $camlpackcmxa $camlcmx
 fi
+#Build the static .a
 rm -rf lib${libname}.a
 ar rc lib${libname}.a impl.o
 mkdir -p tmp_asmrun
@@ -62,11 +68,13 @@ ar rc lib${libname}.a ${x}.o
 done
 $ranlib lib${libname}.a
 rm -rf tmp_asmrun
+#Build an example executable, with static .a
 $ocamlfind ocamlc -c ${finalcfile}.c
 linkflags="-L. -l${libname} -L$libdir $camllink $native_c_libraries"
 echo "LINKER:"$link
 echo "FLAGS:"$linkflags
 $link -o $finalcfile$exesuffix ${finalcfile}.o $linkflags
+#Build an example executable, with dynamic .dll library on Windows
 if [ "${uname:0:6}" == "CYGWIN" ];then
 cc -o $finalcfile-shared$exesuffix ${finalcfile}.o -Wl,-rpath,. -L. -l:lib${libname}.dll -Wl,-rpath,$libdir -L$libdir $camllink
 fi
