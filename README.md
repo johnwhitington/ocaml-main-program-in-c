@@ -20,3 +20,5 @@ For example, as shipped, we build libprog.a and (on windows) libprog.dll. It
 will build main(.exe) (statically linked) on all platforms and main-shared.exe
 (relying on the .dll) on Windows.
 
+Credit: Gerd Stoplmann for his article which forms the basis of this script.
+
