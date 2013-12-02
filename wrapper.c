@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <caml/memory.h>
 #include <caml/callback.h>
-#include <caml/alloc.h>
-#include <caml/bigarray.h>
 int function_in_wrapper(void){
    printf("Calling back into OCaml...\n");
    CAMLlocal2(provided_to_wrapper_v, from_callback);
