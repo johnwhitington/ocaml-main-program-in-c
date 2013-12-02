@@ -22,10 +22,10 @@ mllibs=(unix bigarray)
 ocamlfind=ocamlfind
 
 #OCamlfind packages required to build the OCaml code
-ocamlfind_packs=(cpdf)
+ocamlfind_packs=()
 
 #OCamlfind packages in ocamlfind_packs or required by anything in
 #ocamlfind_packs which have stubs because they themselves contain C code.
-stubs=(camlpdf)
+stubs=()
 
 source generic

@@ -15,12 +15,24 @@ dllname="so"
 link="cc"
 exesuffix=""
 fi
+if [ ${#mllibs[@]} -gt 0 ]; then
 camllibs=$(printf "%s.cmxa " "${mllibs[@]}")
+fi
+if [ ${#mllibs[@]} -gt 0 ]; then
 camlcmx=$(printf "%s.cmx " "${mlfiles[@]}")
+fi
+if [ ${#mllibs[@]} -gt 0 ]; then
 camllink=$(printf -- "-l%s " "${mllibs[@]}")
+fi
+if [ ${#ocamlfind_packs[@]} -gt 0 ]; then
 camlpackages=$(printf -- "-package %s " "${ocamlfind_packs[@]}")
+fi
+if [ ${#ocamlfind_packs[@]} -gt 0 ]; then
 camlpackcmxa=$(printf "%s.cmxa " "${ocamlfind_packs[@]}")
+fi
+if [ ${#cfiles[@]} -gt 0 ]; then
 wrapperos=$(printf "%s.o" "${cfiles[@]}")
+fi
 #Process the .mli files
 for x in "${mlifiles[@]}"
 do
@@ -71,10 +83,12 @@ rm -rf tmp_asmrun
 #Build an example executable, with static .a
 $ocamlfind ocamlc -c ${finalcfile}.c
 linkflags="-L. -l${libname} -L$libdir $camllink $native_c_libraries"
-echo "LINKER:"$link
-echo "FLAGS:"$linkflags
+echo "STATIC LINKER: "$link
+echo "STATIC LINKER FLAGS: "$linkflags
 $link -o $finalcfile$exesuffix ${finalcfile}.o $linkflags
 #Build an example executable, with dynamic .dll library on Windows
 if [ "${uname:0:6}" == "CYGWIN" ];then
+echo "DYNAMIC LINKER CALL"
+echo "cc -o $finalcfile-shared$exesuffix ${finalcfile}.o -Wl,-rpath,. -L. -l:lib${libname}.dll -Wl,-rpath,$libdir -L$libdir $camllink"
 cc -o $finalcfile-shared$exesuffix ${finalcfile}.o -Wl,-rpath,. -L. -l:lib${libname}.dll -Wl,-rpath,$libdir -L$libdir $camllink
 fi
