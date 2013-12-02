@@ -4,12 +4,14 @@ ranlib=`ocamlc -config 2>/dev/null | grep ranlib | sed 's/ranlib: //'`
 native_c_libraries=`ocamlc -config 2>/dev/null | grep native_c_libraries | sed 's/native_c_libraries: //'`
 libdir=`ocamlc -where`
 uname=`uname -s`
-if [ "${uname:0:6}" == "CYGWIN" ];then	
+if [ "${uname:0:6}" == "CYGWIN" ];then
+dllname="dll"	
 libdir=`echo $libdir | dos2unix`
 libdir=`cygpath $libdir`
 link="flexlink -chain mingw -exe"
 exesuffix=".exe"
 else
+dllname="so"
 link="cc"
 exesuffix=""
 fi
@@ -27,6 +29,7 @@ do
 $ocamlfind ocamlopt $camlpackages -c ${x}.ml
 done
 $ocamlfind ocamlopt $camlpackages -output-obj -o impl.o $camllibs $camlpackcmxa $camlcmx
+$ocamlfind ocamlopt $camlpackages -output-obj -o lib${libname}.$dllname $camllibs $camlpackcmxa $camlcmx
 for x in "${cfiles[@]}"
 do
 $ocamlfind ocamlc -c ${x}.c
@@ -61,3 +64,4 @@ linkflags="-L. -l$libname -L$libdir $camllink $native_c_libraries"
 echo "LINKER:"$link
 echo "FLAGS:"$linkflags
 $link -o $finalcfile$exesuffix ${finalcfile}.o $linkflags
+cc -o $finalcfile-shared$exesuffix ${finalcfile}.o -Wl,-rpath,. -Wl,-rpath,$libdir -L. -l$libname -L$libdir $camllink
