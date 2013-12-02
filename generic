@@ -20,6 +20,7 @@ camlcmx=$(printf "%s.cmx " "${mlfiles[@]}")
 camllink=$(printf -- "-l%s " "${mllibs[@]}")
 camlpackages=$(printf -- "-package %s " "${ocamlfind_packs[@]}")
 camlpackcmxa=$(printf "%s.cmxa " "${ocamlfind_packs[@]}")
+wrapperos=$(printf "%s.o" "${cfiles[@]}")
 for x in "${mlifiles[@]}"
 do
 $ocamlfind ocamlc $camlpackages ${x}.mli
@@ -34,7 +35,7 @@ do
 $ocamlfind ocamlc -c ${x}.c
 done
 if [ "${uname:0:6}" == "CYGWIN" ];then
-$ocamlfind ocamlopt $camlpackages -output-obj -o lib${libname}.$dllname wrapper.o $camllibs $camlpackcmxa $camlcmx
+$ocamlfind ocamlopt $camlpackages -output-obj -o lib${libname}.$dllname $wrapperos $camllibs $camlpackcmxa $camlcmx
 fi
 rm -rf lib${libname}.a
 ar rc lib${libname}.a impl.o
