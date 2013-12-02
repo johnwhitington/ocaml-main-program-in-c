@@ -63,7 +63,7 @@ done
 $ranlib lib${libname}.a
 rm -rf tmp_asmrun
 $ocamlfind ocamlc -c ${finalcfile}.c
-linkflags="-L. -l$libname -L$libdir $camllink $native_c_libraries"
+linkflags="-L. -l:lib${libname}.a -L$libdir $camllink $native_c_libraries"
 echo "LINKER:"$link
 echo "FLAGS:"$linkflags
 $link -o $finalcfile$exesuffix ${finalcfile}.o $linkflags
