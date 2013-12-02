@@ -29,11 +29,14 @@ do
 $ocamlfind ocamlopt $camlpackages -c ${x}.ml
 done
 $ocamlfind ocamlopt $camlpackages -output-obj -o impl.o $camllibs $camlpackcmxa $camlcmx
-$ocamlfind ocamlopt $camlpackages -output-obj -o lib${libname}.$dllname $camllibs $camlpackcmxa $camlcmx
 for x in "${cfiles[@]}"
 do
 $ocamlfind ocamlc -c ${x}.c
 done
+if [ "${uname:0:6}" == "CYGWIN" ];then
+echo "$ocamlfind ocamlopt $camlpackages -output-obj -o lib${libname}.$dllname wrapper.o $camllibs $camlpackcmxa $camlcmx"
+$ocamlfind ocamlopt $camlpackages -output-obj -o lib${libname}.$dllname wrapper.o $camllibs $camlpackcmxa $camlcmx
+fi
 rm -rf lib${libname}.a
 ar rc lib${libname}.a impl.o
 mkdir -p tmp_asmrun
@@ -64,4 +67,7 @@ linkflags="-L. -l$libname -L$libdir $camllink $native_c_libraries"
 echo "LINKER:"$link
 echo "FLAGS:"$linkflags
 $link -o $finalcfile$exesuffix ${finalcfile}.o $linkflags
-cc -o $finalcfile-shared$exesuffix ${finalcfile}.o -Wl,-rpath,. -Wl,-rpath,$libdir -L. -l$libname -L$libdir $camllink
+if [ "${uname:0:6}" == "CYGWIN" ];then
+echo "cc -o $finalcfile-shared$exesuffix ${finalcfile}.o -Wl,-rpath,. -L. -l$libname -Wl,-rpath,$libdir -L$libdir $camllink"
+cc -o $finalcfile-shared$exesuffix ${finalcfile}.o -Wl,-rpath,. -L. -l:lib${libname}.dll -Wl,-rpath,$libdir -L$libdir $camllink
+fi
